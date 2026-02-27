@@ -1,65 +1,80 @@
+import streamlit as st
 import re
 import os
 from openai import OpenAI
 from dotenv import load_dotenv
 
+# 1. Environment Setup (from your bot.py logic)
 env_path = os.path.join(os.path.dirname(__file__), '.env')
-
 load_dotenv(dotenv_path=env_path)
 
 api_key = os.getenv("OPENAI_API_KEY")
-
 if not api_key:
-    raise ValueError("PI Key not found! Check your .env file.")
+    st.error("API Key not found! Please check your .env file.")
+    st.stop()
 
 client = OpenAI(api_key=api_key)
 
+# 2. Your Rule-Based Logic (Directly from bot.py)
 def get_rule_based_response(user_input):
-    """Checks for specific patterns using Regular Expressions."""
     user_input = user_input.lower()
-    
     rules = {
         r"hi|hello|hey": "Hello! How can I help you today?",
         r"status|order": "You can check your order status at /account/orders.",
         r"hours|time": "We are open Monday-Friday, 9 AM to 6 PM.",
         r"bye|goodbye": "Goodbye! Have a great day!"
     }
-    
     for pattern, response in rules.items():
         if re.search(pattern, user_input):
             return response
     return None
 
-def get_ai_response(user_input):
-    """Fallback to AI API if no rules match."""
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o", # Or "gpt-3.5-turbo"
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": user_input}
-            ]
-        )
-        return response.choices[0].message.content
-    except Exception as e:
-        return f"I'm having trouble connecting to my brain. Error: {e}"
+# 3. Streamlit UI Layout
+st.set_page_config(page_title="Hybrid Chatbot", page_icon="🤖")
+st.title("🤖 My Hybrid AI Bot")
+st.caption("Using Rules + GPT-4o")
 
-def chatbot():
-    print("Bot: Hi! I'm your hybrid assistant. Type 'exit' to stop.")
-    while True:
-        user_input = input("You: ")
-        if user_input.lower() in ['exit', 'quit']:
-            break
-            
-        # First: Try Rules
-        response = get_rule_based_response(user_input)
+# Initialize chat history (Memory)
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# Display chat history
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# 4. Chat Input & Processing
+if prompt := st.chat_input("Ask me about orders, hours, or anything else!"):
+    # Add user message to history
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    with st.chat_message("assistant"):
+        # First: Try your Rule-Based Logic
+        rule_response = get_rule_based_response(prompt)
         
-        # Second: Try AI (if no rule matched)
-        if not response:
-            print("Bot: (Thinking with AI...)")
-            response = get_ai_response(user_input)
-            
-        print(f"Bot: {response}")
+        if rule_response:
+            full_response = f"📌 [Rule Match]: {rule_response}"
+            st.markdown(full_response)
+        else:
+            # Second: Try AI Fallback
+            try:
+                # We send the whole history so the AI has "memory"
+                stream = client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[
+                        {"role": "system", "content": "You are a helpful assistant."}
+                    ] + [
+                        {"role": m["role"], "content": m["content"]}
+                        for m in st.session_state.messages
+                    ],
+                    stream=True,
+                )
+                full_response = st.write_stream(stream)
+            except Exception as e:
+                full_response = f"I'm having trouble connecting to my brain. Error: {e}"
+                st.error(full_response)
 
-if __name__ == "__main__":
-    chatbot()
+    # Save assistant response to history
+    st.session_state.messages.append({"role": "assistant", "content": full_response})
