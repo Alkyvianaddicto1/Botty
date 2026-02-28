@@ -22,7 +22,9 @@ def get_rule_based_response(user_input):
         r"hi|hello|hey": "Hello! How can I help you today?",
         r"status|order": "You can check your order status at /account/orders.",
         r"hours|time": "We are open Monday-Friday, 9 AM to 6 PM.",
-        r"bye|goodbye": "Goodbye! Have a great day!"
+        r"bye|goodbye": "Goodbye! Have a great day!",
+
+        r"shipping": "Standard shipping takes 3-5 business days.",
     }
     for pattern, response in rules.items():
         if re.search(pattern, user_input):
