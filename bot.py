@@ -234,7 +234,7 @@ if prompt := (st.chat_input("Ask me anything...") or suggestion_prompt):
                             model="gemini-1.5-flash",
                             contents=prompt,
                             config={
-                                "system_instruction": SYSTEM_PROMPT + f" Your current tone is: {personality}."
+                                "system_instruction": dynamic_system_prompt
                             },
                             stream=True  # Enable streaming
                         )
