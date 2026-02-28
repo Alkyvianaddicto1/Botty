@@ -213,61 +213,61 @@ if prompt := (st.chat_input("Ask me anything...") or suggestion_prompt):
 
     with st.chat_message("assistant"):
         with st.spinner("Zfluffy is thinking..."):
-
             rule_response = get_rule_based_response(prompt)
 
-            if doc_context:
-                rag_system_propmt = f"{SYSTEM_PROMPT}\n\n[DOCUMENTED CONTEXT]:\n{doc_context[:5000]}"
-            
-            else:
-                rag_system_propmt = SYSTEM_PROMPT
-            
+            # 1. Handle Memory Compression
             if len(st.session_state.messages) > 15:
                 st.session_state.chat_summary = compress_memory(st.session_state.messages, model_choice)
 
-            # Combine original instructions with the compressed memory
-            dynamic_system_prompt = f"{SYSTEM_PROMPT} Tone: {personality}. Summary of conversation so far: {st.session_state.chat_summary}"
+            # 2. Build ONE Consolidated System Prompt (The "Master Instruction")
+            doc_info = f"\n\n[DOCUMENT CONTEXT]:\n{doc_context[:5000]}" if doc_context else ""
+            summary_info = f"\n\n[CONVERSATION SUMMARY]: {st.session_state.chat_summary}" if st.session_state.chat_summary else ""
+            
+            master_system_prompt = (
+                f"{SYSTEM_PROMPT} "
+                f"Your current tone is: {personality}. "
+                f"{summary_info}"
+                f"{doc_info}"
+            )
         
             if rule_response:
                 full_response = f"📌 [Rule Match]: {rule_response}"
                 st.markdown(full_response)
             else:
                 try:
-                    # Context Window Management (Your existing logic)
-                    system_msg = [st.session_state.messages[0]]
+                    # Context Window Management
+                    # We create a temporary message list just for this API call
                     recent_history = st.session_state.messages[-10:]
-                    context_messages = system_msg + [m for m in recent_history if m["role"] != "system"]
+                    # Replace the old system prompt with our new Master Prompt
+                    context_messages = [{"role": "system", "content": master_system_prompt}] + \
+                                       [m for m in recent_history if m["role"] != "system"]
 
                     if model_choice == "Open AI (GPT-4o)":
                         stream = openai_client.chat.completions.create(
                             model="gpt-3.5-turbo",
-                            messages=context_messages,
+                            messages=context_messages, # Now contains Summary + PDF + Personality
                             stream=True,
                         )
                         full_response = st.write_stream(stream)
                     
                     else:
-                        # --- UPDATED: GEMINI STREAMING LOGIC ---
+                        # Gemini Streaming
                         gemini_history = []
                         for m in context_messages[:-1]:
                             if m["role"] != "system":
                                 role = "user" if m["role"] == "user" else "model"
                                 gemini_history.append({"role": role, "parts": [m["content"]]})
                         
-                        # Use the new library streaming method
                         response = gemini_client.models.generate_content(
                             model="gemini-1.5-flash",
                             contents=prompt,
-                            config={
-                                "system_instruction": dynamic_system_prompt
-                            },
-                            stream=True  # Enable streaming
+                            config={"system_instruction": master_system_prompt}, # Fixed
+                            stream=True
                         )
-                        
-                        # st.write_stream handles the generator returned by Gemini
                         full_response = st.write_stream(chunk.text for chunk in response)
 
                 except Exception as e:
+                    # ... (keep your existing error handling)
                     if "insufficient_quota" in str(e).lower():
                         full_response = "🚫 **System Note:** OpenAI credits are empty. Switch to Gemini!"
                     else:
