@@ -1,6 +1,7 @@
 import streamlit as st
 import re
 import os
+import fitz
 from openai import OpenAI
 from google import genai 
 from dotenv import load_dotenv
@@ -39,6 +40,15 @@ st.title("🤖 Zfluffy Spicy AI")
 if "messages" not in st.session_state:
     st.session_state.messages = [{"role": "system", "content": SYSTEM_PROMPT}]
 
+def extract_text_from_file(uploaded_file):
+    if uploaded_file.type == "application/pdf":
+        doc = fitz.open(stream=uploaded_file.read(), filetype="pdf")
+        text = "".join([page.get_text() for page in doc])
+        return text
+    elif uploaded_file.type == "text/plain":
+        return str(uploaded_file.read(), "utf-8")
+    return ""
+
 with st.sidebar:
     st.header("⚙️ Settings")
 
@@ -67,7 +77,16 @@ with st.sidebar:
                 st.rerun()
 
     st.divider()
+
+    st.header("📄 Document Analysis")
+    uploaded_file = st.file_uploader("Upload a PDF or TXT file", type=["pdf", "txt"])
     
+    doc_context = ""
+    if uploaded_file:
+        with st.spinner("Reading document..."):
+            doc_context = extract_text_from_file(uploaded_file)
+            st.success(f"Loaded: {uploaded_file.name}")
+
     st.subheader("📊 Session Stats")
     msg_count = len([m for m in st.session_state.messages if m["role"] != "system"])
     st.write(f"Messages this session: **{msg_count}**")
@@ -196,6 +215,12 @@ if prompt := (st.chat_input("Ask me anything...") or suggestion_prompt):
         with st.spinner("Zfluffy is thinking..."):
 
             rule_response = get_rule_based_response(prompt)
+
+            if doc_context:
+                rag_system_propmt = f"{SYSTEM_PROMPT}\n\n[DOCUMENTED CONTEXT]:\n{doc_context[:5000]}"
+            
+            else:
+                rag_system_propmt = SYSTEM_PROMPT
             
             if len(st.session_state.messages) > 15:
                 st.session_state.chat_summary = compress_memory(st.session_state.messages, model_choice)
