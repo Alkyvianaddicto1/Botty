@@ -41,6 +41,12 @@ if "messages" not in st.session_state:
 
 with st.sidebar:
     st.header("⚙️ Settings")
+
+    personality = st.selectbox(
+        "Bot Personality: ",
+        ("Professional", "Witty & Spicy", "Sarcastic", "Friendly"),
+        index = 1
+    )
     model_choice = st.radio(
         "Choose your AI brain: ",
         ("Open AI (GPT-4o)", "Google Gemini (Free Tier)"),
