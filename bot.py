@@ -29,6 +29,8 @@ def get_rule_based_response(user_input):
         r"location|address|office": "Our main office is located at 123 Tech Lane, NY.",
 
         r"price|cost|how much": "Our subscription plans start at $10/month.",
+
+        r"human|agent|support": "I'm connecting you to a live agent. Please wait..."
     }
     for pattern, response in rules.items():
         if re.search(pattern, user_input):
