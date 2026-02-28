@@ -125,6 +125,8 @@ if prompt := st.chat_input("Ask me about orders, hours, or anything else!"):
     with st.chat_message("user"):
         st.markdown(prompt)
 
+    # ... (Previous code remains the same)
+
     with st.chat_message("assistant"):
         with st.spinner("Zfluffy is thinking..."):
             rule_response = get_rule_based_response(prompt)
@@ -134,42 +136,41 @@ if prompt := st.chat_input("Ask me about orders, hours, or anything else!"):
                 st.markdown(full_response)
             else:
                 try:
-                    # --- NEW: CONTEXT WINDOW MANAGEMENT ---
-                    # We always include the System Prompt (index 0) 
-                    # plus the last 10 messages to save tokens.
+                    # Context Window Management (Your existing logic)
                     system_msg = [st.session_state.messages[0]]
                     recent_history = st.session_state.messages[-10:]
-                    
-                    # Merge them so the AI always knows its instructions
                     context_messages = system_msg + [m for m in recent_history if m["role"] != "system"]
 
                     if model_choice == "Open AI (GPT-4o)":
                         stream = openai_client.chat.completions.create(
                             model="gpt-3.5-turbo",
-                            messages=context_messages, # Using the limited context
+                            messages=context_messages,
                             stream=True,
                         )
                         full_response = st.write_stream(stream)
+                    
                     else:
-                        # For Gemini, we pass the limited context history
+                        # --- UPDATED: GEMINI STREAMING LOGIC ---
                         gemini_history = []
-                        for m in context_messages[:-1]: # Exclude the current prompt
+                        for m in context_messages[:-1]:
                             if m["role"] != "system":
                                 role = "user" if m["role"] == "user" else "model"
                                 gemini_history.append({"role": role, "parts": [m["content"]]})
                         
-                        # Start chat with the sliding window history
-                        chat = gemini_client.chats.create(
+                        # Use the new library streaming method
+                        response = gemini_client.models.generate_content(
                             model="gemini-1.5-flash",
-                            history=gemini_history,
-                            config={"system_instruction": SYSTEM_PROMPT}
+                            contents=prompt,
+                            config={
+                                "system_instruction": SYSTEM_PROMPT + f" Your current tone is: {personality}."
+                            },
+                            stream=True  # Enable streaming
                         )
-                        response = chat.send_message(prompt)
-                        full_response = response.text
-                        st.markdown(full_response)
+                        
+                        # st.write_stream handles the generator returned by Gemini
+                        full_response = st.write_stream(chunk.text for chunk in response)
 
                 except Exception as e:
-                    # ... (Exception handling remains the same)
                     if "insufficient_quota" in str(e).lower():
                         full_response = "🚫 **System Note:** OpenAI credits are empty. Switch to Gemini!"
                     else:
