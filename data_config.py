@@ -67,6 +67,20 @@ BOT_RULES = {
     r"which planets are rocky": "Mercury, Venus, Earth, and Mars are rocky planets.",
     r"which planets are gas": "Jupiter and Saturn are gas giants.",
     r"which planets are ice": "Uranus and Neptune are ice giants.",
+    r"why are gas giants big": "Gas giants grew large because they captured massive amounts of gas during formation.",
+    r"can planets collide": "Yes, planets can collide, especially during early solar system formation.",
+    r"have planets collided before": "Yes, scientists believe Earth’s Moon formed after a giant collision.",
+    r"what is asteroid": "An asteroid is a rocky object orbiting the Sun, smaller than a planet.",
+    r"what is comet": "A comet is an icy object that forms a glowing tail when near the Sun.",
+    r"what is meteoroid": "A meteoroid is a small rock traveling through space.",
+    r"what is meteor": "A meteor is a meteoroid burning up in Earth’s atmosphere.",
+    r"what is meteorite": "A meteorite is a meteoroid that reaches the ground.",
+    r"what is exoplanet": "An exoplanet is a planet outside our solar system.",
+    r"how many exoplanets": "Scientists have discovered thousands of exoplanets beyond our solar system.",
+    r"can exoplanets have life": "Some exoplanets may have conditions suitable for life, but none are confirmed yet.",
+    r"what is habitable zone": "The habitable zone is the region around a star where liquid water could exist.",
+    r"which planet is in habitable zone": "Earth lies in the Sun’s habitable zone.",
+    r"does mars have water": "Mars has frozen water and evidence that liquid water existed in the past.",
 
 
 }
