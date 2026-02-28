@@ -194,6 +194,9 @@ if prompt := (st.chat_input("Ask me anything...") or suggestion_prompt):
 
     with st.chat_message("assistant"):
         with st.spinner("Zfluffy is thinking..."):
+
+            rule_response = get_rule_based_response(prompt)
+            
             if len(st.session_state.messages) > 15:
                 st.session_state.chat_summary = compress_memory(st.session_state.messages, model_choice)
 
