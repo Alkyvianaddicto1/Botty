@@ -119,13 +119,24 @@ for i, message in enumerate(st.session_state.messages):
                     status = st.session_state.feedback[i]
                     st.caption(f"Rated: {status}")
 
+# These pills give users quick access to your rule-based logic
+st.write("✨ **Quick Actions:**")
+suggestions = ["Shipping Info", "Office Location", "Order Status", "Support"]
+cols = st.columns(len(suggestions))
+
+# We use a placeholder for the prompt if a suggestion is clicked
+suggestion_prompt = None
+
+for i, suggestion in enumerate(suggestions):
+    with cols[i]:
+        if st.button(suggestion, key=f"suggest_{i}", use_container_width=True):
+            suggestion_prompt = suggestion
+
 # 4. Chat Input & Processing
 if prompt := st.chat_input("Ask me about orders, hours, or anything else!"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
-
-    # ... (Previous code remains the same)
 
     with st.chat_message("assistant"):
         with st.spinner("Zfluffy is thinking..."):
