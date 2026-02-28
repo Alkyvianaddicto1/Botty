@@ -44,7 +44,9 @@ st.caption("Using Rules + GPT-4o")
 
 # Initialize chat history (Memory)
 if "messages" not in st.session_state:
-    st.session_state.messages = []
+    st.session_state.messages = [
+        {"role": "system", "content": "You are a helpful assistant" }
+    ]
 
 # Display chat history
 for message in st.session_state.messages:
@@ -70,7 +72,7 @@ if prompt := st.chat_input("Ask me about orders, hours, or anything else!"):
             try:
                 # We send the whole history so the AI has "memory"
                 stream = client.chat.completions.create(
-                    model="gpt-4o",
+                    model="gpt-3.5-turbo",
                     messages=[
                         {"role": "system", "content": "You are a helpful assistant."}
                     ] + [
