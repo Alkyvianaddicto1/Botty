@@ -46,6 +46,19 @@ BOT_RULES = {
     r"can humans live on mars": "Humans cannot currently live on Mars without special equipment, but scientists are researching it.",
     r"can humans live on venus": "Venus is too hot and has toxic clouds, making it extremely difficult for humans to live there.",
     r"what is planet gravity": "Planetary gravity is the force that pulls objects toward a planet’s center.",
+    r"which planet has strongest gravity": "Jupiter has the strongest gravity of all the planets.",
+    r"which planet has weakest gravity": "Mercury has one of the weakest gravities among the planets.",
+    r"what is escape velocity": "Escape velocity is the speed needed to break free from a planet’s gravity.",
+    r"why is earth special": "Earth is special because it has liquid water, oxygen, and conditions suitable for life.",
+    r"what is atmosphere made of": "An atmosphere can contain gases like nitrogen, oxygen, carbon dioxide, and others.",
+    r"which planet has thickest atmosphere": "Venus has the thickest atmosphere among terrestrial planets.",
+    r"which planet has strongest winds": "Neptune has the fastest winds in the solar system.",
+    r"does it rain on other planets": "Yes, but not always water. Some planets have methane or acid rain.",
+    r"does it rain diamonds": "Scientists think it may rain diamonds on Neptune and Uranus due to high pressure.",
+    r"what is a day on mars": "A day on Mars is about 24.6 hours.",
+    r"what is a day on jupiter": "A day on Jupiter lasts about 10 hours.",
+    r"what is a year on mercury": "A year on Mercury is about 88 Earth days.",
+
 
 
 }
