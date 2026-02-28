@@ -2,9 +2,11 @@ import streamlit as st
 import re
 import os
 import fitz
+import csv
 from openai import OpenAI
 from google import genai 
 from dotenv import load_dotenv
+from datetime import datetime
 
 from data_config import BOT_RULES, SYSTEM_PROMPT
 
@@ -106,6 +108,24 @@ with st.sidebar:
 if "feedback" not in st.session_state:
     st.session_state.feedback = {}
 
+def log_feedback_to_csv(message_index, prompt, response, rating):
+    """Saves chat feedback to a local CSV file for review."""
+    file_exists = os.path.isfile('bot_feedback.csv')
+    
+    with open('bot_feedback.csv', mode='a', newline='', encoding='utf-8') as file:
+        writer = csv.writer(file)
+        # Write header if file is new
+        if not file_exists:
+            writer.writerow(['Timestamp', 'Model', 'User_Prompt', 'Assistant_Response', 'Rating'])
+        
+        writer.writerow([
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            st.session_state.get('model_choice', 'Unknown'),
+            prompt,
+            response,
+            rating
+        ])
+
 # Display chat history
 for i, message in enumerate(st.session_state.messages):
     if message["role"] != "system":
@@ -126,12 +146,18 @@ for i, message in enumerate(st.session_state.messages):
                 with col1:
                     if st.button("👍", key=f"up_{i}"):
                         st.session_state.feedback[i] = "Positive"
-                        st.toast("Thanks for the feedback!", icon="💖")
+                        # Log to CSV
+                        user_p = st.session_state.messages[i-1]["content"] if i > 0 else "N/A"
+                        log_feedback_to_csv(i, user_p, message["content"], "Positive")
+                        st.toast("Feedback saved to CSV!", icon="💖")
                 
                 with col2:
                     if st.button("👎", key=f"down_{i}"):
                         st.session_state.feedback[i] = "Negative"
-                        st.toast("Thanks for letting me know. I'll try to improve!", icon="🔧")
+                        # Log to CSV
+                        user_p = st.session_state.messages[i-1]["content"] if i > 0 else "N/A"
+                        log_feedback_to_csv(i, user_p, message["content"], "Negative")
+                        st.toast("Feedback logged for review.", icon="🔧")
                 
                 # Show saved feedback status if it exists
                 if i in st.session_state.feedback:
