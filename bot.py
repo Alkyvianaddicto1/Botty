@@ -84,6 +84,9 @@ with st.sidebar:
         use_container_width=True
     )
 
+if "feedback" not in st.session_state:
+    st.session_state.feedback = {}
+
 # Display chat history
 for i, message in enumerate(st.session_state.messages):
     if message["role"] != "system":
@@ -97,6 +100,24 @@ for i, message in enumerate(st.session_state.messages):
                     # Remove this user message and the following assistant message
                     st.session_state.messages = st.session_state.messages[:i]
                     st.rerun()
+
+            if message ["role"] == "assistant":
+                col1, col2, col3 = st.columns([0.1, 0.1, 0.8])
+
+                with col1:
+                    if st.button("👍", key=f"up_{i}"):
+                        st.session_state.feedback[i] = "Positive"
+                        st.toast("Thanks for the feedback!", icon="💖")
+                
+                with col2:
+                    if st.button("👎", key=f"down_{i}"):
+                        st.session_state.feedback[i] = "Negative"
+                        st.toast("Thanks for letting me know. I'll try to improve!", icon="🔧")
+                
+                # Show saved feedback status if it exists
+                if i in st.session_state.feedback:
+                    status = st.session_state.feedback[i]
+                    st.caption(f"Rated: {status}")
 
 # 4. Chat Input & Processing
 if prompt := st.chat_input("Ask me about orders, hours, or anything else!"):
