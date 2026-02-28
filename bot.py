@@ -120,20 +120,50 @@ for i, message in enumerate(st.session_state.messages):
                     st.caption(f"Rated: {status}")
 
 # These pills give users quick access to your rule-based logic
-st.write("✨ **Quick Actions:**")
-suggestions = ["Shipping Info", "Office Location", "Order Status", "Support"]
-cols = st.columns(len(suggestions))
+# --- 1. FUNCTION TO GENERATE DYNAMIC SUGGESTIONS ---
+def get_dynamic_suggestions(history, model_choice):
+    """Asks the AI to generate 3 short follow-up suggestions based on history."""
+    # Only generate if there's an actual conversation
+    if len(history) <= 1:
+        return ["Shipping Info", "Office Location", "Order Status", "Support"]
+    
+    suggestion_prompt = "Based on the conversation above, provide 3 very short (1-3 words) follow-up questions the user might ask next. Format: Item 1, Item 2, Item 3"
+    
+    try:
+        if model_choice == "Open AI (GPT-4o)":
+            response = openai_client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=history + [{"role": "system", "content": suggestion_prompt}],
+                max_tokens=50
+            )
+            suggestions_raw = response.choices[0].message.content
+        else:
+            # Gemini implementation for suggestions
+            response = gemini_client.models.generate_content(
+                model="gemini-1.5-flash",
+                contents=f"Conversation history: {history}. {suggestion_prompt}"
+            )
+            suggestions_raw = response.text
+        
+        return [s.strip() for s in suggestions_raw.split(",")]
+    except:
+        # Fallback to defaults if API fails
+        return ["Shipping Info", "Office Location", "Order Status"]
 
-# We use a placeholder for the prompt if a suggestion is clicked
+# --- 2. DISPLAY DYNAMIC SUGGESTIONS ---
+st.write("✨ **Suggested next steps:**")
+current_suggestions = get_dynamic_suggestions(st.session_state.messages, model_choice)
+
+cols = st.columns(len(current_suggestions))
 suggestion_prompt = None
 
-for i, suggestion in enumerate(suggestions):
+for i, suggestion in enumerate(current_suggestions):
     with cols[i]:
-        if st.button(suggestion, key=f"suggest_{i}", use_container_width=True):
+        if st.button(suggestion, key=f"suggest_{i}_{len(st.session_state.messages)}", use_container_width=True):
             suggestion_prompt = suggestion
 
-# 4. Chat Input & Processing
-if prompt := st.chat_input("Ask me about orders, hours, or anything else!"):
+# --- 3. UPDATED CHAT INPUT LOGIC ---
+if prompt := (st.chat_input("Ask me anything...") or suggestion_prompt):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
