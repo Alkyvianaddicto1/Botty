@@ -20,7 +20,21 @@ BOT_RULES = {
     r"mercury|hot": "Mercury is hot because it is very close to the Sun and has almost no atmosphere.",
     r"mercury|cold": "Mercury also gets very cold because it lacks an atmosphere to trap heat.",
     r"venus|moons": "No, Venus does not have any moons.",
-    r"mercury|moons": "No, Mercury has no moons."
+    r"mercury|moons": "No, Mercury has no moons.",
+    r"does mars have moons": "Yes, Mars has two small moons named Phobos and Deimos.",
+    r"earth|moons": "Earth has one natural moon.",
+    r"jupiter|moons": "Yes, Jupiter has many moons including the large Galilean moons.",
+    r"saturn|moons": "Yes, Saturn has many moons including Titan.",
+    r"uranus|moons": "Yes, Uranus has over 20 known moons.",
+    r"neptune|moons": "Yes, Neptune has several moons, the largest being Triton.",
+    r"mars|red": "Mars appears red because of iron oxide, or rust, covering its surface.",
+    r"saturn|rings": "Saturn’s rings are made of ice and rock particles held in orbit by gravity.",
+    r"planetary|rings": "Planetary rings are bands of dust, ice, and rock orbiting a planet.",
+    r"planets|rings": "Jupiter, Saturn, Uranus, and Neptune all have rings.",
+    r"uranus|tilted": "Uranus is tilted likely due to a collision with a large object long ago.",
+    r"solar|system": "A solar system is a star and all the objects that orbit it, including planets.",
+    r"star|orbit": "Our solar system orbits the Sun.",
+
 }
 
 # The personality/instruction for the AI
