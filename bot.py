@@ -5,6 +5,8 @@ from openai import OpenAI
 import google.generativeai as genai
 from dotenv import load_dotenv
 
+from data_config import BOT_RULES, SYSTEM_PROMPT
+
 # 1. Environment Setup
 env_path = os.path.join(os.path.dirname(__file__), '.env')
 load_dotenv(dotenv_path=env_path)
@@ -26,24 +28,15 @@ client = OpenAI(api_key=api_key)
 # 2. Rule-Based Logic
 def get_rule_based_response(user_input):
     user_input = user_input.lower()
-    rules = {
-        r"hi|hello|hey": "Hello! How can I help you today?",
-        r"status|order": "You can check your order status at /account/orders.",
-        r"hours|time": "We are open Monday-Friday, 9 AM to 6 PM.",
-        r"bye|goodbye": "Goodbye! Have a great day!",
-        r"shipping": "Standard shipping takes 3-5 business days.",
-        r"location|address|office": "Our main office is located at 123 Tech Lane, NY.",
-        r"price|cost|how much": "Our subscription plans start at $10/month.",
-        r"human|agent|support": "I'm connecting you to a live agent. Please wait..."
-    }
-    for pattern, response in rules.items():
+  
+    for pattern, response in BOT_RULES.items():
         if re.search(pattern, user_input):
             return response
     return None
 
 # 3. Streamlit UI Layout
 st.set_page_config(page_title="Hybrid Chatbot", page_icon="🤖")
-st.title("🤖 My Hybrid AI Bot")
+st.title("🤖 Zfluffy Spicy AI")
 
 with st.sidebar:
     st.header("Settings")
