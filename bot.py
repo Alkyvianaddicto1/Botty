@@ -35,11 +35,10 @@ def get_rule_based_response(user_input):
 st.set_page_config(page_title="Hybrid Chatbot", page_icon="🤖")
 st.title("🤖 Zfluffy Spicy AI")
 
-# Initialize chat history (Memory) early so sidebar can access it
+# Initialize chat history (Memory)
 if "messages" not in st.session_state:
     st.session_state.messages = [{"role": "system", "content": SYSTEM_PROMPT}]
 
-# --- UPDATED SIDEBAR FEATURES ---
 with st.sidebar:
     st.header("⚙️ Settings")
     model_choice = st.radio(
@@ -50,20 +49,24 @@ with st.sidebar:
 
     if st.button("Clear Chat History", use_container_width=True):
         st.session_state.messages = [{"role": "system", "content": SYSTEM_PROMPT}]
-        st.toast("Chat history cleared!", icon="🧹") # Clear Chat Toast
+        st.toast("Chat history cleared!", icon="🧹")
         st.rerun()
+
+    # --- NEW: REGENERATE BUTTON ---
+    if len(st.session_state.messages) > 1:
+        if st.button("🔄 Regenerate Last Response", use_container_width=True):
+            # Remove the last assistant response
+            if st.session_state.messages[-1]["role"] == "assistant":
+                st.session_state.messages.pop()
+                st.rerun()
 
     st.divider()
     
-    # Feature: Sidebar Chat Statistics
     st.subheader("📊 Session Stats")
-    # Count messages excluding the system prompt
     msg_count = len([m for m in st.session_state.messages if m["role"] != "system"])
     st.write(f"Messages this session: **{msg_count}**")
     
-    # Feature: Advanced Data Export
     st.subheader("📥 Export Data")
-    # Prepare chat history for download
     chat_text = "\n".join([f"{m['role'].upper()}: {m['content']}" 
                           for m in st.session_state.messages if m['role'] != 'system'])
     
@@ -74,16 +77,20 @@ with st.sidebar:
         mime="text/plain",
         use_container_width=True
     )
-    
-    st.divider()
-    st.subheader("💡 About")
-    st.caption("Zfluffy uses a hybrid system: local rules for speed and AI for complex logic.")
 
 # Display chat history
-for message in st.session_state.messages:
+for i, message in enumerate(st.session_state.messages):
     if message["role"] != "system":
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
+            
+            # --- NEW: EDIT LAST USER MESSAGE ---
+            # If it's the most recent user message, allow editing
+            if message["role"] == "user" and i == len(st.session_state.messages) - 2:
+                if st.button("✏️ Edit", key=f"edit_{i}"):
+                    # Remove this user message and the following assistant message
+                    st.session_state.messages = st.session_state.messages[:i]
+                    st.rerun()
 
 # 4. Chat Input & Processing
 if prompt := st.chat_input("Ask me about orders, hours, or anything else!"):
@@ -92,7 +99,6 @@ if prompt := st.chat_input("Ask me about orders, hours, or anything else!"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        # Feature: Spinner for "Thinking" state
         with st.spinner("Zfluffy is thinking..."):
             rule_response = get_rule_based_response(prompt)
         
@@ -119,11 +125,10 @@ if prompt := st.chat_input("Ask me about orders, hours, or anything else!"):
 
                 except Exception as e:
                     if "insufficient_quota" in str(e).lower():
-                        full_response = "🚫 **System Note:** OpenAI credits are empty. Switch to Gemini in the sidebar!"
+                        full_response = "🚫 **System Note:** OpenAI credits are empty. Switch to Gemini!"
                     else:
-                        full_response = f"Error connecting to brain: {e}"
+                        full_response = f"Error: {e}"
                     st.error(full_response)
 
     st.session_state.messages.append({"role": "assistant", "content": full_response})
-
     st.rerun()
