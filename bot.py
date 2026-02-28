@@ -83,7 +83,7 @@ if prompt := st.chat_input("Ask me about orders, hours, or anything else!"):
                 )
                 full_response = st.write_stream(stream)
             except Exception as e:
-                if "Insufficient_quota" in str(e):
+                if "Insufficient_quota" in str(e).lower():
                     full_response = "🚫 **System Note:** My AI brain is currently out of credits, but I can still answer questions about our hours, shipping, and location!"
                 else:
                     full_response = f"I'm having trouble connecting to my brain. Error: {e}"
