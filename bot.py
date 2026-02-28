@@ -27,6 +27,8 @@ def get_rule_based_response(user_input):
         r"shipping": "Standard shipping takes 3-5 business days.",
 
         r"location|address|office": "Our main office is located at 123 Tech Lane, NY.",
+
+        r"price|cost|how much": "Our subscription plans start at $10/month.",
     }
     for pattern, response in rules.items():
         if re.search(pattern, user_input):
