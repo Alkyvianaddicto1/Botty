@@ -120,35 +120,59 @@ for i, message in enumerate(st.session_state.messages):
                     st.caption(f"Rated: {status}")
 
 # These pills give users quick access to your rule-based logic
-# --- 1. FUNCTION TO GENERATE DYNAMIC SUGGESTIONS ---
-def get_dynamic_suggestions(history, model_choice):
-    """Asks the AI to generate 3 short follow-up suggestions based on history."""
-    # Only generate if there's an actual conversation
-    if len(history) <= 1:
-        return ["Shipping Info", "Office Location", "Order Status", "Support"]
+if "chat_summary" not in st.session_state:
+    st.session_state.chat_summary = ""
+
+def compress_memory(history, model_choice):
+    """Generates a 2-sentence summary of the conversation if it gets too long."""
+    # Only compress if history is long (e.g., more than 15 messages)
+    if len(history) < 15:
+        return st.session_state.chat_summary
     
-    suggestion_prompt = "Based on the conversation above, provide 3 very short (1-3 words) follow-up questions the user might ask next. Format: Item 1, Item 2, Item 3"
+    summary_instruction = f"Summarize the key points of this conversation so far in 2 sentences. Previous summary: {st.session_state.chat_summary}"
     
     try:
         if model_choice == "Open AI (GPT-4o)":
             response = openai_client.chat.completions.create(
                 model="gpt-3.5-turbo",
-                messages=history + [{"role": "system", "content": suggestion_prompt}],
-                max_tokens=50
+                messages=history + [{"role": "system", "content": summary_instruction}],
+                max_tokens=100
             )
-            suggestions_raw = response.choices[0].message.content
+            return response.choices[0].message.content
         else:
-            # Gemini implementation for suggestions
             response = gemini_client.models.generate_content(
                 model="gemini-1.5-flash",
-                contents=f"Conversation history: {history}. {suggestion_prompt}"
+                contents=f"History: {history}. {summary_instruction}"
             )
-            suggestions_raw = response.text
-        
-        return [s.strip() for s in suggestions_raw.split(",")]
+            return response.text
     except:
-        # Fallback to defaults if API fails
-        return ["Shipping Info", "Office Location", "Order Status"]
+        return st.session_state.chat_summary
+
+# --- 1. FUNCTION TO GENERATE DYNAMIC SUGGESTIONS ---
+def get_dynamic_suggestions(history, model_choice):
+    """Generates 3 short follow-up buttons based on context."""
+    if len(history) <= 1:
+        return ["Shipping Info", "Office Location", "Support"]
+    
+    suggestion_instruction = "Provide 3 very short (1-3 words) follow-up questions. Format: Item 1, Item 2, Item 3"
+    
+    try:
+        if model_choice == "Open AI (GPT-4o)":
+            response = openai_client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=history + [{"role": "system", "content": suggestion_instruction}],
+                max_tokens=50
+            )
+            raw = response.choices[0].message.content
+        else:
+            response = gemini_client.models.generate_content(
+                model="gemini-1.5-flash",
+                contents=f"History: {history}. {suggestion_instruction}"
+            )
+            raw = response.text
+        return [s.strip() for s in raw.split(",")]
+    except:
+        return ["Shipping Info", "Office Location", "Support"]
 
 # --- 2. DISPLAY DYNAMIC SUGGESTIONS ---
 st.write("✨ **Suggested next steps:**")
@@ -170,7 +194,11 @@ if prompt := (st.chat_input("Ask me anything...") or suggestion_prompt):
 
     with st.chat_message("assistant"):
         with st.spinner("Zfluffy is thinking..."):
-            rule_response = get_rule_based_response(prompt)
+            if len(st.session_state.messages) > 15:
+                st.session_state.chat_summary = compress_memory(st.session_state.messages, model_choice)
+
+            # Combine original instructions with the compressed memory
+            dynamic_system_prompt = f"{SYSTEM_PROMPT} Tone: {personality}. Summary of conversation so far: {st.session_state.chat_summary}"
         
             if rule_response:
                 full_response = f"📌 [Rule Match]: {rule_response}"
