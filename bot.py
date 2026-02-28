@@ -66,7 +66,8 @@ if prompt := st.chat_input("Ask me about orders, hours, or anything else!"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
-        rule_response = get_rule_based_response(prompt)
+        with st.spinner("Zfluffy is thinking ..."):
+            rule_response = get_rule_based_response(prompt)
         
         if rule_response:
             full_response = f"📌 [Rule Match]: {rule_response}"
