@@ -34,6 +34,19 @@ BOT_RULES = {
     r"uranus|tilted": "Uranus is tilted likely due to a collision with a large object long ago.",
     r"solar|system": "A solar system is a star and all the objects that orbit it, including planets.",
     r"star|orbit": "Our solar system orbits the Sun.",
+    r"what galaxy are we in": "Our solar system is in the Milky Way galaxy.",
+    r"how old are planets": "Most planets in our solar system formed about 4.5 billion years ago.",
+    r"why do planets spin": "Planets spin because of the momentum from the rotating cloud of gas and dust they formed from.",
+    r"why do planets orbit": "Planets orbit because gravity pulls them toward the Sun while their motion keeps them moving.",
+    r"what is planet axis": "A planet’s axis is an imaginary line it spins around.",
+    r"what causes seasons": "Seasons are caused by a planet’s tilt as it orbits the Sun.",
+    r"does mars have seasons": "Yes, Mars has seasons because it is tilted like Earth.",
+    r"does jupiter have solid ground": "No, Jupiter is mostly gas and does not have a solid surface like Earth.",
+    r"can you stand on saturn": "No, Saturn is a gas giant and does not have a solid surface.",
+    r"can humans live on mars": "Humans cannot currently live on Mars without special equipment, but scientists are researching it.",
+    r"can humans live on venus": "Venus is too hot and has toxic clouds, making it extremely difficult for humans to live there.",
+    r"what is planet gravity": "Planetary gravity is the force that pulls objects toward a planet’s center.",
+
 
 }
 
