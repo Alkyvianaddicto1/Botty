@@ -2,7 +2,7 @@ import streamlit as st
 import re
 import os
 from openai import OpenAI
-import google.generativeai as genai
+from google import genai  # Updated import to the new library
 from dotenv import load_dotenv
 
 from data_config import BOT_RULES, SYSTEM_PROMPT
@@ -14,16 +14,15 @@ load_dotenv(dotenv_path=env_path)
 api_key = os.getenv("OPENAI_API_KEY")
 google_key = os.getenv("GOOGLE_API_KEY")
 
-# Configure Gemini if key exists
+# Configure Gemini with the new Client structure
 if google_key:
-    genai.configure(api_key=google_key)
-    gemini_model = genai.GenerativeModel('gemini-1.5-flash')
+    gemini_client = genai.Client(api_key=google_key)
 
 if not api_key:
     st.error("API Key not found! Please check your .env file.")
     st.stop()
 
-client = OpenAI(api_key=api_key)
+openai_client = OpenAI(api_key=api_key)
 
 # 2. Rule-Based Logic
 def get_rule_based_response(user_input):
@@ -47,12 +46,12 @@ with st.sidebar:
     )
 
     if st.button("Clear Chat History"):
-        st.session_state.messages = [{"role": "system", "content": "You are a helpful assistant"}]
+        st.session_state.messages = [{"role": "system", "content": SYSTEM_PROMPT}]
         st.rerun()
 
 # Initialize chat history (Memory)
 if "messages" not in st.session_state:
-    st.session_state.messages = [{"role": "system", "content": "You are a helpful assistant"}]
+    st.session_state.messages = [{"role": "system", "content": SYSTEM_PROMPT}]
 
 # Display chat history
 for message in st.session_state.messages:
@@ -76,25 +75,25 @@ if prompt := st.chat_input("Ask me about orders, hours, or anything else!"):
             try:
                 # OPTION A: OpenAI Brain
                 if model_choice == "Open AI (GPT-4o)":
-                    stream = client.chat.completions.create(
+                    stream = openai_client.chat.completions.create(
                         model="gpt-3.5-turbo",
                         messages=st.session_state.messages,
                         stream=True,
                     )
                     full_response = st.write_stream(stream)
                 
-                # OPTION B: Gemini Brain
+                # OPTION B: Gemini Brain (Using the new library methods)
                 else:
-                    # Convert OpenAI format history to Gemini format
-                    history = []
-                    for m in st.session_state.messages[:-1]:
-                        if m["role"] != "system":
-                            role = "user" if m["role"] == "user" else "model"
-                            history.append({"role": role, "parts": [m["content"]]})
-                    
-                    chat = gemini_model.start_chat(history=history)
-                    response = chat.send_message(prompt, stream=True)
-                    full_response = st.write_stream(chunk.text for chunk in response)
+                    # The new library simplifies chat history management
+                    response = gemini_client.models.generate_content(
+                        model="gemini-1.5-flash",
+                        contents=prompt,
+                        config={
+                            "system_instruction": SYSTEM_PROMPT
+                        }
+                    )
+                    full_response = response.text
+                    st.markdown(full_response)
 
             except Exception as e:
                 if "insufficient_quota" in str(e).lower():
