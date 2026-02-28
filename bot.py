@@ -83,8 +83,11 @@ if prompt := st.chat_input("Ask me about orders, hours, or anything else!"):
                 )
                 full_response = st.write_stream(stream)
             except Exception as e:
-                full_response = f"I'm having trouble connecting to my brain. Error: {e}"
-                st.error(full_response)
+                if "Insufficient_quota" in str(e):
+                    full_response = "🚫 **System Note:** My AI brain is currently out of credits, but I can still answer questions about our hours, shipping, and location!"
+                else:
+                    full_response = f"I'm having trouble connecting to my brain. Error: {e}"
+                st.error(full_response) 
 
     # Save assistant response to history
     st.session_state.messages.append({"role": "assistant", "content": full_response})
